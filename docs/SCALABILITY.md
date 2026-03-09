@@ -28,9 +28,10 @@ In the POC, the router had to learn *from scratch* while simultaneously dropping
 TinyStories is highly repetitive. Words like "Once", "upon", "a", "time" take up space, but the narrative logic is simple. In real-world data (code, Wikipedia, reasoning traces), information is packed tightly. The router has much stronger signals to latch onto. A variable assignment `x = 42` has a mathematically massive attention weight compared to conversational filler. The router excels at finding these high-signal anchors.
 
 ### Reason 3: The Asymptote of Perplexity
-As perplexity approaches 1.0, improvements become exponentially harder. A gap of 1.74 PPL at the high end (e.g., 4.0 vs 5.7) means the model is just a bit clunkier at grammar. A gap of 1.74 PPL at the low end (e.g., 1.5 vs 3.2) is the difference between a genius and a toddler. 
+As perplexity approaches 1.0, improvements become exponentially harder. A gap of 1.74 PPL at the high end (e.g., 4.0 vs 5.7) means the model is just a bit clunkier at grammar. A gap of 1.74 PPL at the low end (e.g., 1.5 vs 3.2) is the difference between a genius and a toddler. The raw numerical gap of 1.74 will mathematically have to shrink as the baseline model approaches optimal language representations.
 
-Because PTD scales by packing more semantic density into fewer tokens, the attention heads actually have an *easier* job processing the remaining 30% — they don't have to dilute their softmax probabilities across thousands of irrelevant tokens.
+### Reason 4: Semantic Density and Softmax Dilution
+Because PTD scales by packing more semantic density into fewer tokens via the training curriculum, the attention heads actually have an *easier* job processing the remaining 30%. They do not have to dilute their softmax probabilities across thousands of irrelevant tokens. This structural advantage helps offset the loss of raw token volume.
 
 ### Honest Estimations for Production (Pretrained Qwen 1.5B/7B + PTD Fine-tune)
 
