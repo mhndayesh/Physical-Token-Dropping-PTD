@@ -14,6 +14,8 @@ from transformer_0_5b import SparseTransformer05B, Config
 
 def benchmark():
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    if device != "cuda":
+        raise SystemExit("CUDA is required for this benchmark script.")
     print(f"Comparing Scales on {device}...")
     
     class ScaleConfig(Config):

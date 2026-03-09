@@ -34,7 +34,7 @@ class TrueDense(nn.Module):
         return self.head(self.enc(self.emb(x), mask=mask, is_causal=True))
 
 def train_and_eval(model_type, sparsity=0.3, steps=200):
-    device = "cuda"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.manual_seed(42)  # For consistent initialization
     
     if model_type == "true_dense":
@@ -97,7 +97,8 @@ if __name__ == "__main__":
     
     for cfg in configs:
         print(f"Training {cfg['name']}...")
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         ppl, t_train = train_and_eval(cfg['type'], cfg['s'])
         results.append({"Model": cfg["name"], "PPL": round(ppl, 2), "Train Time (s)": round(t_train, 1)})
         print(f"  -> PPL: {ppl:.2f} | Time: {t_train:.1f}s")

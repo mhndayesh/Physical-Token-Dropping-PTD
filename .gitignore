@@ -1,0 +1,9 @@
+__pycache__/
+*/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local artifacts
+tinystories_tokenized.pt
+oom_results.json

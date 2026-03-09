@@ -231,5 +231,7 @@ def part2_oom_boundary():
     return dense_results, sparse_results
 
 if __name__ == "__main__":
+    if not torch.cuda.is_available():
+        raise SystemExit("CUDA is required for scientific_validation.py")
     baseline = part1_true_baseline()
     dense_oom, sparse_oom = part2_oom_boundary()

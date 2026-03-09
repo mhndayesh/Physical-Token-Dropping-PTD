@@ -4,6 +4,7 @@ so each test gets a fully clean GPU.
 """
 import subprocess, sys, json
 import os
+import torch
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_DIR = os.path.join(ROOT, "src")
@@ -46,6 +47,8 @@ print(f"{{peak:.0f}}")
         return "TIMEOUT"
 
 if __name__ == "__main__":
+    if not torch.cuda.is_available():
+        raise SystemExit("CUDA is required for oom_boundary_test.py")
     seq_lengths = [2048, 4096, 8192, 12288, 16384, 20480, 24576, 32768]
     
     print("="*60)
