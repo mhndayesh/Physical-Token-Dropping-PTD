@@ -2,74 +2,47 @@
 
 Proof-of-concept repository for a transformer variant that physically keeps only top-scored tokens during block execution.
 
-## Repository Layout
+## Quick Navigation
+
+- Engineering docs: FINAL_ENG_DOCS/
+- PTD V2 (Qwen) runtime: actual_ptd/
+- Long-context batch report (4K): FINAL_ENG_DOCS/LONG_CONTEXT_BATCH_REPORT_4K.md
+- Accuracy scoreboard: PTD_SCOREBOARD.md
+- POC concept docs: ptd_poc/docs/
+
+## Repository Layout (Current)
 
 ```text
 .
-├── src/
-│   ├── transformer_0_5b.py
-│   └── sparse_transformer.py
-├── benchmarks/
-├── eval/
-├── docs/
-├── prepare_data.py
-└── README.md
+??? actual_ptd/                 # PTD V2 runtime + training + eval
+??? FINAL_ENG_DOCS/             # Engineering documentation bundle
+??? PTD_SCOREBOARD.md           # Sparse vs dense PPL results
+??? ptd_poc/                    # Original POC code + docs
+??? README.md
 ```
 
-## Quick Start
+## PTD V2 (Qwen2.5-0.5B)
 
-1) Install dependencies
+Runtime and training code lives in `actual_ptd/`.
 
-```bash
-pip install torch pandas datasets transformers
-```
+Key docs:
+- actual_ptd/README.md (commands and usage)
+- FINAL_ENG_DOCS/ (full engineering documentation)
 
-2) Prepare TinyStories tensor used by eval scripts
+## Long-Context Testing
 
-```bash
-python prepare_data.py --samples 2000 --seq-len 513 --output tinystories_tokenized.pt
-```
+- Single test (8K): actual_ptd/run_long_test.py
+- Batch test (4K): actual_ptd/run_long_test_batch.py
+- Latest 4K report: FINAL_ENG_DOCS/LONG_CONTEXT_BATCH_REPORT_4K.md
 
-3) Run eval/benchmark scripts from repo root
+## Legacy POC
 
-```bash
-python eval/verify_accuracy.py
-python eval/verify_tinystories.py
-python eval/true_baseline_accuracy.py
-python benchmarks/scientific_validation.py
-python benchmarks/oom_boundary_test.py
-python benchmarks/true_baseline_full.py
-```
+The original concept and proof-of-concept docs are under `ptd_poc/docs/`.
 
-## PTD Qwen2.5-0.5B POC
-
-This repo now includes the PTD runtime code and links to a trained checkpoint.
-
-- Runtime: `actual_ptd/`
-- Checkpoint + results: `ptd_models/README.md`
-
-Quick eval:
-
-```bash
-python -m actual_ptd.eval_perplexity \
-  --model Qwen/Qwen2.5-0.5B \
-  --data data/tinystories_packed_qwen.pt \
-  --checkpoint ptd_v2_phase3_stage4_keep50.pt \
-  --keep-rate 0.5
-```
-
-## Notes
-
-- Import paths in scripts are now root-safe (`src/` is auto-added).
-- `benchmarks/true_baseline_full.py` no longer uses a machine-specific hardcoded path.
-- The docs describe the concept and POC results, not a production training stack.
-
-## Core Docs
-
-- [MASTER_POC](docs/MASTER_POC.md)
-- [ARCHITECTURE](docs/ARCHITECTURE.md)
-- [MATHEMATICAL_PROOFS](docs/MATHEMATICAL_PROOFS.md)
-- [WALKTHROUGH](docs/WALKTHROUGH.md)
-- [TRAINING_RECIPE](docs/TRAINING_RECIPE.md)
-- [SCALABILITY](docs/SCALABILITY.md)
-- [PTD_QWEN_POC](docs/PTD_QWEN_POC.md)
+Core docs:
+- ptd_poc/docs/MASTER_POC.md
+- ptd_poc/docs/ARCHITECTURE.md
+- ptd_poc/docs/MATHEMATICAL_PROOFS.md
+- ptd_poc/docs/WALKTHROUGH.md
+- ptd_poc/docs/TRAINING_RECIPE.md
+- ptd_poc/docs/SCALABILITY.md
