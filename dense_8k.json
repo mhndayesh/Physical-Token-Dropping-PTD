@@ -1,0 +1,10 @@
+{
+  "mode": "dense",
+  "answer_ppl": 13.172416709211404,
+  "seq_len": 8191,
+  "answer_len": 21,
+  "forward_sec": 2.444179000100121,
+  "tokens_per_sec": 3351.227549072499,
+  "max_cuda_alloc_mb": 9569.90185546875,
+  "max_cuda_reserved_mb": 10446.0
+}

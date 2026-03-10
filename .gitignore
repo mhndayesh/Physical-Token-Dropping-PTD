@@ -5,5 +5,10 @@ __pycache__/
 *.pyd
 
 # Local artifacts
+checkpoints/
+data/
+offload/
+long_context_test/
+ptd_poc/.git_disabled/
 tinystories_tokenized.pt
 oom_results.json

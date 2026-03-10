@@ -29,6 +29,18 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--save-every", type=int, default=500)
     p.add_argument("--log-every", type=int, default=50)
     p.add_argument(
+        "--coverage-window",
+        type=int,
+        default=0,
+        help="segments per local window for coverage penalty (0 disables)",
+    )
+    p.add_argument(
+        "--coverage-weight",
+        type=float,
+        default=0.0,
+        help="weight for coverage penalty (0 disables)",
+    )
+    p.add_argument(
         "--mask-loss",
         dest="mask_loss",
         action="store_true",
@@ -77,6 +89,23 @@ def kl_distill(
     denom = eff_mask.float().sum().clamp_min(1.0)
     loss = (kl * eff_mask.float()).sum() / denom
     return loss * (temperature ** 2)
+
+
+def coverage_penalty(segment_selection: torch.Tensor, window: int) -> torch.Tensor:
+    if window <= 0:
+        return torch.zeros((), device=segment_selection.device, dtype=torch.float32)
+    if segment_selection.numel() == 0:
+        return torch.zeros((), device=segment_selection.device, dtype=torch.float32)
+    n_blocks, bsz, n_seg = segment_selection.shape
+    pad = (window - (n_seg % window)) % window
+    if pad > 0:
+        pad_tensor = torch.zeros(n_blocks, bsz, pad, dtype=torch.bool, device=segment_selection.device)
+        segment_selection = torch.cat([segment_selection, pad_tensor], dim=-1)
+        n_seg = segment_selection.size(-1)
+    seg = segment_selection.view(n_blocks, bsz, n_seg // window, window)
+    window_any = seg.any(dim=-1)
+    missing = (~window_any).float().mean()
+    return missing
 
 
 def main() -> None:
@@ -152,6 +181,8 @@ def main() -> None:
         losses: List[float] = []
         losses_full: List[float] = []
         losses_sel: List[float] = []
+        losses_cov: List[float] = []
+        entropies: List[float] = []
         local_start = stage_step if stage_idx == start_stage else 0
         for step in range(local_start + 1, args.steps_per_stage + 1):
             global_step += 1
@@ -177,6 +208,9 @@ def main() -> None:
                 mask_loss=True,
             )
             loss = loss_sel if args.mask_loss else loss_full
+            loss_cov = coverage_penalty(aux["segment_selection"], args.coverage_window)
+            if args.coverage_weight > 0:
+                loss = loss + args.coverage_weight * loss_cov
 
             optimizer.zero_grad()
             loss.backward()
@@ -186,16 +220,22 @@ def main() -> None:
             losses.append(loss.item())
             losses_full.append(loss_full.item())
             losses_sel.append(loss_sel.item())
+            losses_cov.append(loss_cov.item())
+            if aux["router_entropy"].numel() > 0:
+                entropies.append(aux["router_entropy"].mean().item())
             stage_step = step
 
             if step % args.log_every == 0:
                 avg = sum(losses[-args.log_every:]) / args.log_every
                 avg_full = sum(losses_full[-args.log_every:]) / args.log_every
                 avg_sel = sum(losses_sel[-args.log_every:]) / args.log_every
+                avg_cov = sum(losses_cov[-args.log_every:]) / args.log_every
+                avg_ent = sum(entropies[-args.log_every:]) / max(1, len(entropies[-args.log_every:]))
                 elapsed = time.time() - t0
                 print(
                     f"  step {step:>5d}/{args.steps_per_stage} | "
                     f"loss {avg:.4f} | full {avg_full:.4f} | sel {avg_sel:.4f} | "
+                    f"cov {avg_cov:.4f} | ent {avg_ent:.4f} | "
                     f"elapsed {elapsed:.1f}s | keep {keep_rate:.0%}"
                 )
 

@@ -205,6 +205,8 @@ class PTDQwen2ForCausalLM(nn.Module):
         seg_size = self.ptd.segment_size
         selection_mask = torch.zeros(bsz, seq_len, dtype=torch.bool, device=device)
         gate_means = []
+        segment_selections = []
+        router_entropies = []
 
         for router, layers in zip(self.routers, self.layer_groups):
             pad_len = (seg_size - (seq_len % seg_size)) % seg_size
@@ -227,6 +229,14 @@ class PTDQwen2ForCausalLM(nn.Module):
             n_seg = n_pad // seg_size
             pooled, seg_valid = _segment_pool(x_pad, m_pad, n_seg, seg_size)
             seg_scores, seg_ix = router.score(pooled, valid_mask=seg_valid)
+            seg_selected = torch.zeros(bsz, n_seg, dtype=torch.bool, device=device)
+            seg_selected.scatter_(1, seg_ix, torch.ones_like(seg_ix, dtype=torch.bool))
+            segment_selections.append(seg_selected)
+
+            scores_f = seg_scores.float()
+            probs = torch.softmax(scores_f, dim=-1)
+            entropy = -(probs * probs.clamp_min(1e-9).log()).sum(dim=-1).mean()
+            router_entropies.append(entropy)
 
             tok_ix = (
                 seg_ix.unsqueeze(-1) * seg_size + torch.arange(seg_size, device=device)
@@ -306,6 +316,14 @@ class PTDQwen2ForCausalLM(nn.Module):
             "selection_mask": selection_mask,
             "token_mask": token_mask,
             "gate_means": torch.stack(gate_means) if gate_means else torch.empty(0, device=device, dtype=dtype),
+            "segment_selection": (
+                torch.stack(segment_selections) if segment_selections else torch.empty(0, device=device, dtype=torch.bool)
+            ),
+            "router_entropy": (
+                torch.stack(router_entropies)
+                if router_entropies
+                else torch.empty(0, device=device, dtype=torch.float32)
+            ),
         }
         return hidden, aux
 
