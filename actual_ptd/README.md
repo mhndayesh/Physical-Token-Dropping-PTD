@@ -19,6 +19,7 @@ This directory is a fresh implementation built from the repo concepts, with clea
 - `profile_eval.py`: torch.profiler wrapper for dense/PTD forward.
 - `eval_kv_cache.py`: Sparse no-cache vs sparse KV-cache correctness/perf check.
 - `eval_cache_compare.py`: Dense-cache vs PTD-cache benchmark.
+- `export_hf_package.py`: Build HF upload package from PTD checkpoint.
 - `prepare_long_test.py`: Build fixed prompt pack for long-context tests.
 - `run_long_test.py`: Single long-context test (dense + PTD).
 - `run_long_test_batch.py`: Batch long-context test across many chats.
@@ -127,4 +128,36 @@ Dense-cache vs PTD-cache comparison:
 
 ```powershell
 python -m actual_ptd.eval_cache_compare --model Qwen/Qwen2.5-0.5B --checkpoint checkpoints/ptd_v2_phase3_stage3_keep70.pt --keep-rate 0.7 --prompt-file long_context_test\prompt.txt --ideal-answer-file long_context_test\ideal_answer.txt --seq-len 8192 --report-json reports\cache_compare_8k_keep70.json
+```
+
+Build Hugging Face package (keep 70 full-state):
+
+```powershell
+python -m actual_ptd.export_hf_package --checkpoint checkpoints/ptd_v2_phase3_stage3_keep70.pt --out-dir ptd_models/hf_keep70_full_state --base-model Qwen/Qwen2.5-0.5B --keep-rate 0.7 --package-type full_state --model-label "Qwen2.5-0.5B PTD Keep70"
+```
+
+Upload package:
+
+```powershell
+huggingface-cli upload <user>/<repo> ptd_models/hf_keep70_full_state . --repo-type model
+```
+
+Published PTD Qwen variant (keep70):
+- `mhndayesh/PTD-Qwen2.5-0.5B-Keep70-Variant`
+- https://huggingface.co/mhndayesh/PTD-Qwen2.5-0.5B-Keep70-Variant
+
+Load published model with Auto classes:
+
+```python
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+repo = "mhndayesh/PTD-Qwen2.5-0.5B-Keep70-Variant"
+model = AutoModelForCausalLM.from_pretrained(
+    repo,
+    trust_remote_code=True,
+    dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+    device_map="auto",
+)
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
 ```

@@ -1,19 +1,26 @@
 # PTD Qwen2.5-0.5B Models
 
-This folder documents the PTD checkpoints hosted on Hugging Face.
+This folder documents PTD checkpoints and packaged PTD Qwen variants hosted on Hugging Face.
 
 ## Hugging Face Repo
 
-- https://huggingface.co/mhndayesh/PDT
+- Legacy checkpoints repo: https://huggingface.co/mhndayesh/PDT
+- PTD Qwen keep70 variant repo: https://huggingface.co/mhndayesh/PTD-Qwen2.5-0.5B-Keep70-Variant
 
-## Available Checkpoint
+## Available Checkpoints
 
 - Keep 50%: `ptd_v2_phase3_stage4_keep50.pt`
   - Direct download: https://huggingface.co/mhndayesh/PDT/resolve/main/ptd_v2_phase3_stage4_keep50.pt
 
+- Keep 70% package (full-state):
+  - Local export folder: `ptd_models/hf_keep70_full_state/`
+  - Main weight file: `ptd_model_state.pt`
+  - Recommended keep-rate: `0.7`
+  - Published HF repo: `mhndayesh/PTD-Qwen2.5-0.5B-Keep70-Variant`
+
 ## How To Use
 
-These checkpoints require the PTD runtime code in `actual_ptd/`.
+Legacy raw checkpoints require the PTD runtime code in `actual_ptd/`.
 
 ```bash
 python -m actual_ptd.eval_perplexity \
@@ -25,4 +32,10 @@ python -m actual_ptd.eval_perplexity \
 
 ## Notes
 
-These are not standard Hugging Face models. They require the custom PTD forward pass.
+- The exported keep70 package includes HF custom code so it can be loaded via `AutoModelForCausalLM.from_pretrained(..., trust_remote_code=True)`.
+- It also includes a direct helper loader (`hf_ptd_loader.py`) and PTD runtime model file.
+- Upload command:
+
+```powershell
+huggingface-cli upload <user>/<repo> ptd_models/hf_keep70_full_state . --repo-type model
+```

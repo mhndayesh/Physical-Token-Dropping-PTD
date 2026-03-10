@@ -13,6 +13,8 @@ Root
 - ptd_poc/ : original POC and blueprint documents
 - checkpoints/ : local training checkpoints (not tracked in git)
 - data/ : packed dataset tensors
+- ptd_models/ : model packaging notes and export outputs
+- ptd_models/hf_keep70_full_state/ : HF upload-ready keep70 package (generated)
 
 actual_ptd/
 - model.py : PTDConfig, router, gather/scatter, PTDQwen2ForCausalLM
@@ -24,6 +26,7 @@ actual_ptd/
 - profile_eval.py : torch.profiler wrapper for dense/PTD
 - eval_kv_cache.py : checks PTD cache correctness/perf
 - eval_cache_compare.py : dense-cache vs PTD-cache benchmark
+- export_hf_package.py : exports checkpoint into HF upload package folder
 - prepare_long_test.py : builds fixed 4K/8K prompt packs
 - run_long_test.py : single run dense + PTD with metrics
 - run_long_test_batch.py : batch run across many chats/questions

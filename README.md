@@ -49,6 +49,52 @@ Detailed benchmark report:
 - Training: Phase 2 router warm-up + Phase 3 sparsity curriculum
 - Inference: Dense cache, PTD sparse cache, and long-context tests
 
+## Hugging Face Package (Keep 70)
+
+Published model repo:
+- https://huggingface.co/mhndayesh/PTD-Qwen2.5-0.5B-Keep70-Variant
+
+Export upload-ready package from checkpoint:
+
+```powershell
+python -m actual_ptd.export_hf_package --checkpoint checkpoints/ptd_v2_phase3_stage3_keep70.pt --out-dir ptd_models/hf_keep70_full_state --base-model Qwen/Qwen2.5-0.5B --keep-rate 0.7 --package-type full_state --model-label "Qwen2.5-0.5B PTD Keep70"
+```
+
+Upload folder to HF:
+
+```powershell
+huggingface-cli upload <your-username>/<your-repo> ptd_models/hf_keep70_full_state . --repo-type model
+```
+
+Load from published HF repo (standard AutoModel + remote code):
+
+```python
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+repo = "mhndayesh/PTD-Qwen2.5-0.5B-Keep70-Variant"
+model = AutoModelForCausalLM.from_pretrained(
+    repo,
+    trust_remote_code=True,
+    dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+    device_map="auto",
+)
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
+```
+
+Load packaged model:
+
+```python
+from pathlib import Path
+import sys
+
+pkg = Path("ptd_models/hf_keep70_full_state").resolve()
+sys.path.insert(0, str(pkg))
+from hf_ptd_loader import load_ptd_model
+
+model, meta = load_ptd_model(str(pkg), device="cuda", dtype="bfloat16", keep_rate=0.7)
+```
+
 ## Legacy POC References
 
 Core concept documents:

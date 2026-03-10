@@ -190,3 +190,15 @@ Dense-cache vs PTD-cache comparison (8K)
 ```powershell
 python -m actual_ptd.eval_cache_compare --model Qwen/Qwen2.5-0.5B --checkpoint checkpoints/ptd_v2_phase3_stage3_keep70.pt --keep-rate 0.7 --prompt-file long_context_test\prompt.txt --ideal-answer-file long_context_test\ideal_answer.txt --seq-len 8192 --report-json reports\cache_compare_8k_keep70.json
 ```
+
+Export HF package (keep 70, full-state)
+
+```powershell
+python -m actual_ptd.export_hf_package --checkpoint checkpoints/ptd_v2_phase3_stage3_keep70.pt --out-dir ptd_models/hf_keep70_full_state --base-model Qwen/Qwen2.5-0.5B --keep-rate 0.7 --package-type full_state --model-label "Qwen2.5-0.5B PTD Keep70"
+```
+
+Upload HF package
+
+```powershell
+huggingface-cli upload <user>/<repo> ptd_models/hf_keep70_full_state . --repo-type model
+```

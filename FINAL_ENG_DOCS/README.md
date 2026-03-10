@@ -14,6 +14,7 @@ Contents
 - 06_REPRO_COMMANDS.md
 - 07_LIMITATIONS_AND_NEXT_STEPS.md
 - 08_FILE_MAP.md
+- 09_HF_RELEASE_AND_DEPLOYMENT.md
 - CACHE_COMPARE_REPORT_2026-03-10.md
 
 Quick summary
@@ -22,3 +23,6 @@ PTD (Physical Token Dropping) selects a subset of tokens inside each block, runs
 Latest cache benchmark summary (Qwen2.5-0.5B, keep=70%)
 - 4K: same accuracy as dense on this sample, 44% lower total time, 64% lower peak VRAM.
 - 8K: ~4.76 points lower accuracy, 72% lower total time, 86% lower peak VRAM.
+
+Published HF PTD Qwen variant
+- https://huggingface.co/mhndayesh/PTD-Qwen2.5-0.5B-Keep70-Variant

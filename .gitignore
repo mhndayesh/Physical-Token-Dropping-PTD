@@ -8,6 +8,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+ptd_models/hf_*/
 ptd_poc/.git_disabled/
 tinystories_tokenized.pt
 oom_results.json
