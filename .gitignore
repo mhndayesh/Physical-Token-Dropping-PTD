@@ -1,14 +1,13 @@
+checkpoints/
+data/
+offload/
+long_context_test/
+reports/*.json
 __pycache__/
 */__pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Local artifacts
-checkpoints/
-data/
-offload/
-long_context_test/
 ptd_poc/.git_disabled/
 tinystories_tokenized.pt
 oom_results.json

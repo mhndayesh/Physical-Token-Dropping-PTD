@@ -9,6 +9,9 @@ Proof-of-concept repository for a transformer variant that physically keeps only
 - Long-context batch report (4K): [LONG_CONTEXT_BATCH_REPORT_4K.md](FINAL_ENG_DOCS/LONG_CONTEXT_BATCH_REPORT_4K.md)
 - Accuracy scoreboard: [PTD_SCOREBOARD.md](PTD_SCOREBOARD.md)
 - POC concept docs: [ptd_poc/docs](ptd_poc/docs)
+- Reports (JSON outputs): [reports](reports)
+- Utilities and scripts: [tools](tools)
+- Legacy notes: [legacy](legacy)
 
 ## Repository Layout (Current)
 
@@ -17,6 +20,9 @@ Proof-of-concept repository for a transformer variant that physically keeps only
 ??? actual_ptd/                 # PTD V2 runtime + training + eval
 ??? FINAL_ENG_DOCS/             # Engineering documentation bundle
 ??? PTD_SCOREBOARD.md           # Sparse vs dense PPL results
+??? reports/                    # JSON outputs from test runs
+??? tools/                      # Diagnostics and helper scripts
+??? legacy/                     # Legacy notes and scripts
 ??? ptd_poc/                    # Original POC code + docs
 ??? README.md
 ```
