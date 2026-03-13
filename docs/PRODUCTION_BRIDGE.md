@@ -38,46 +38,49 @@ New data/training/serving scripts:
 The repository already documents that sparse-cache decode is approximate (not bit-exact).  
 For safer operations, this bridge keeps PTD for prompt pruning and then decodes with dense Qwen (`prefill sparse, decode dense`).
 
-## Benchmark Snapshot (Keep70 Checkpoint)
+## Benchmark Snapshot (Dense vs PTD-70 vs PTD-30)
 
 Checkpoint used:
-- `checkpoints/ptd_prod_phase3_stage4_keep70.pt` (keep-rate 0.7)
+- `checkpoints/ptd_prod_phase3_stage4_keep70.pt`
 
-Dense vs PTD replay run (10 eval samples, 96 new tokens):
-- Dense
-  - mean latency: `1.9674s`
-  - throughput: `48.795 tok/s`
-  - peak VRAM: `986.52 MB`
-  - critical recall: `0.425`
-- PTD (default fallback behavior)
-  - mean latency: `1.9729s`
-  - throughput: `48.6602 tok/s`
-  - peak VRAM: `996.66 MB`
-  - critical recall: `0.500`
-  - fallback rate: `1.0`
-- PTD (forced PTD path, fallback disabled)
-  - mean latency: `1.9537s`
-  - throughput: `49.1377 tok/s`
-  - peak VRAM: `996.67 MB`
-  - critical recall: `0.500`
-  - fallback rate: `0.0`
+### 4k Context Runtime (32 new tokens)
 
-Long-context benchmark (32 new tokens):
-- 4k context
-  - Dense latency: `1.6097s`, peak VRAM: `4150.69 MB`
-  - PTD latency: `1.1198s`, peak VRAM: `4234.99 MB`
-  - PTD speedup: about `1.44x` faster, but slightly higher peak VRAM (`+84 MB`)
-- 8k context
-  - Dense latency: `22.9846s`, peak VRAM: `10527.85 MB`
-  - PTD latency: `25.7360s`, peak VRAM: `8580.28 MB`
-  - PTD used about `1947.57 MB` less peak VRAM, but was slower in this run
+| Metric | Dense | PTD-70 | PTD-30 |
+| --- | --- | --- | --- |
+| latency | `1.2914s` | `1.0639s` | `0.7909s` |
+| throughput | `24.7795 tok/s` | `30.0786 tok/s` | `40.4608 tok/s` |
+| peak VRAM | `4150.63 MB` | `4234.92 MB` | `3345.85 MB` |
+| fallback rate | `n/a` | `0.0` | `0.0` |
+
+Key deltas:
+- PTD-70 vs Dense: about `1.21x` faster, with `+84.29 MB` peak VRAM in this run.
+- PTD-30 vs Dense: about `1.64x` faster, with `804.78 MB` lower peak VRAM.
+
+### General Eval Quality (60 samples)
+
+`force_ptd=true`, `recent_window=0`, `max_new_tokens=64`
+
+| Metric | Dense | PTD-70 | PTD-30 |
+| --- | --- | --- | --- |
+| response token F1 | `0.2228` | `0.2078` | `0.1753` |
+| latency mean | `1.3393s` | `1.3713s` | `1.3410s` |
+| throughput | `47.0140 tok/s` | `46.2328 tok/s` | `46.9923 tok/s` |
+| peak VRAM | `994.67 MB` | `1080.75 MB` | `1080.75 MB` |
+| fallback rate | `n/a` | `0.0` | `0.0` |
+
+Quality tradeoff:
+- PTD-70 F1 delta vs Dense: `-0.0150`
+- PTD-30 F1 delta vs Dense: `-0.0475`
+- PTD-30 F1 delta vs PTD-70: `-0.0325` (about `15.64%` relative)
 
 Reference logs used:
-- `logs/dense_vs_ptd_results_10.json`
-- `logs/dense_vs_ptd_results_10_force_ptd.json`
-- `logs/long_context_dense_vs_ptd_4k_8k.json`
+- `logs/long_context_4k_fallback.json`
+- `logs/long_context_4k_keep30_fallback.json`
+- `logs/accuracy_general_keep70_force_rw0.json`
+- `logs/accuracy_general_keep30_force_rw0.json`
 
 ## Notes
 
+- PTD-30 and PTD-70 inference settings above were tested on a keep70-trained checkpoint, so a keep30-trained checkpoint may change the quality/runtime tradeoff.
 - 16k benchmark was started but interrupted; no final `16k` JSON report was produced.
 - This bridge is an engineering deployment compromise, not a mathematically exact PTD-to-dense hidden-state handoff.

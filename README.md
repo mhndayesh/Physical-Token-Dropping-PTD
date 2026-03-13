@@ -3,25 +3,25 @@
 PTD is a sparse transformer approach that keeps only top-scored token segments during block execution.
 This repository contains a working PTD V2 implementation on **Qwen2.5-0.5B (0.5B model)** with training and evaluation code.
 
-## Latest Production Update (Qwen2.5-0.5B, Keep70, 2026-03-14)
+## Latest Production Update (Dense vs PTD-70 vs PTD-30, 2026-03-14)
 
-Current production path uses **sparse prefill + dense decode** (`serve_prefill_dense.py`) with safety fallback.
+Current production path uses **sparse prefill + dense decode** (`serve_prefill_dense.py`) with fallback available.
 
-Dense vs PTD production-bridge snapshot:
+### 3-way snapshot
 
-| Test | Dense | PTD Bridge | Net |
+| Angle | Dense | PTD-70 | PTD-30 |
 | --- | --- | --- | --- |
-| Replay (10 samples) mean latency | `1.9674s` | `1.9729s` | almost equal |
-| Replay (10 samples) critical recall | `0.425` | `0.500` | PTD +`0.075` |
-| 4K context latency | `1.6097s` | `1.1198s` | PTD about `1.44x` faster |
-| 4K context peak VRAM | `4150.69 MB` | `4234.99 MB` | PTD +`84 MB` |
-| 8K context latency | `22.9846s` | `25.7360s` | PTD slower on this run |
-| 8K context peak VRAM | `10527.85 MB` | `8580.28 MB` | PTD saves `1947.57 MB` (~`18.5%`) |
+| General eval quality (response token F1, 60 samples) | `0.2228` | `0.2078` | `0.1753` |
+| 4K latency (32 new tokens) | `1.2914s` | `1.0639s` | `0.7909s` |
+| 4K throughput | `24.7795 tok/s` | `30.0786 tok/s` | `40.4608 tok/s` |
+| 4K peak VRAM | `4150.63 MB` | `4234.92 MB` | `3345.85 MB` |
+| Fallback rate in these runs | `n/a` | `0.0` | `0.0` |
 
 What this means:
-- New way improves deployment safety and control (mandatory keep masks, recent-window protection, fallback checks).
-- Speedup is workload-dependent; memory savings become more visible on longer contexts.
-- This is a practical production bridge, not a mathematically exact PTD-to-dense state handoff.
+- PTD-70 is the balanced setting: about `1.21x` faster than dense at 4K with a small quality drop (`-0.0150` F1).
+- PTD-30 is the aggressive setting: about `1.64x` faster than dense and saves about `804.78 MB` VRAM at 4K, with larger quality drop (`-0.0475` F1 vs dense; `-0.0325` vs PTD-70).
+- In these benchmark runs, fallback did not trigger. It remains enabled for safety in production.
+- Keep30/keep70 inference comparison here was run on a **keep70-trained checkpoint** (`ptd_prod_phase3_stage4_keep70.pt`), so a true keep30-trained checkpoint may shift the tradeoff.
 
 Production references:
 - [docs/PRODUCTION_BRIDGE.md](docs/PRODUCTION_BRIDGE.md)
